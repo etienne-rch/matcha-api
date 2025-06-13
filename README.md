@@ -7,8 +7,10 @@
 ## Fonctionnalités
 
 - Architecture claire et modulaire
-- Connexion à MongoDB Atlas via Mongoose
+- Connexion à MongoDB Atlas via le driver natif `mongodb`
+- Schémas de validation avec `zod`
 - Linting & formatage avec ESLint + Prettier
+- Tri automatique des imports (Prettier plugin)
 - Tests unitaires avec Jest
 - Chargement sécurisé des variables d’environnement avec dotenv
 - Structure extensible pour services, middlewares, validations, etc.
@@ -66,7 +68,7 @@ matcha-api/
 ├── src/
 │   ├── config/          # Connexions (ex: MongoDB)
 │   ├── controllers/     # Logique métier des routes
-│   ├── models/          # Schémas Mongoose
+│   ├── models/          # Schémas de validation (zod)
 │   ├── routes/          # Déclaration des routes Express
 │   ├── middlewares/     # Middlewares personnalisés
 │   ├── services/        # Logique métier, accès DB
@@ -76,11 +78,11 @@ matcha-api/
 │   └── index.ts         # Point d’entrée : DB + server
 ├── .env
 ├── .env.example
-├── .eslintrc.json
-├── .prettierrc
+├── eslint.config.js
+├── prettier.config.cjs
 ├── .gitignore
 ├── tsconfig.json
-├── jest.config.js
+├── jest.config.cjs
 └── README.md
 ```
 
@@ -88,10 +90,47 @@ matcha-api/
 
 ## Conventions & bonnes pratiques
 
-- Les noms de fichiers sont en kebab-case : `user.controller.ts`
-- Utilisation stricte de TypeScript (types explicites, `strict` dans `tsconfig.json`)
-- Middleware global de gestion des erreurs
-- Structure MVC + services clairs (pas de logique DB dans les routes)
+### 🧱 Structure du code
+
+- **MVC + services** : aucune logique métier ou DB dans les routes.
+- **Controllers** = orchestrateurs simples, sans logique métier profonde.
+- **Services** = couche métier, appel au driver `mongodb`.
+- **Validations** faites dans `models/` avec `zod`.
+- **Middlewares** = réutilisables, testables, sans effet de bord.
+
+### 🧠 Nommage & code
+
+- Dossiers et fichiers en **kebab-case** : `user.controller.ts`, `auth.routes.ts`
+- Classes en **PascalCase**, variables & fonctions en **camelCase**
+- Variables d’environnement typées avec `zod`
+- Fonctions **unitaires, claires, typées**, pas de `any` non justifié
+
+### 🔍 Lint / format
+
+- Lint obligatoire (ESLint avec config stricte)
+- Formatage automatique avec Prettier
+- Tri des imports avec `@trivago/prettier-plugin-sort-imports`
+- Hook `pre-commit` (Husky) avec `lint-staged` : **pas de commit si erreurs**
+
+### 🧪 Tests
+
+- Un test minimum par controller/service
+- Nom des fichiers : `*.test.ts` ou `*.spec.ts`
+- Utilisation de **Supertest** pour tester les routes HTTP
+
+### 🛡️ Sécurité & robustesse
+
+- Ne jamais logger d’infos sensibles
+- Toujours gérer les erreurs avec le middleware `errorHandler`
+- DB connectée avant de lancer l’API (dans `index.ts`)
+- Pas de logique dans les routes (juste appel au controller)
+
+### ♻️ Git & CI
+
+- Commits avec convention (`feat:`, `fix:`, `chore:`...)
+- Branche `main` = stable, **tests & lint passent en CI**
+- CI GitHub Actions dans `.github/workflows/ci.yml`
+- Pull requests avec review avant merge
 
 ---
 

@@ -1,23 +1,28 @@
-import mongoose from 'mongoose';
+import dotenv from 'dotenv';
+import { Db, MongoClient } from 'mongodb';
 
-const connectDB = async (): Promise<void> => {
-  const uri = process.env.MONGODB_URI;
+dotenv.config();
 
-  if (!uri) {
-    console.error('❌ MONGODB_URI est manquant dans le fichier .env');
-    process.exit(1);
-  }
+const uri = process.env.MONGODB_URI!;
 
+export const mongoClient = new MongoClient(uri);
+
+let db: Db;
+
+export const connectDB = async (): Promise<void> => {
   try {
-    const conn = await mongoose.connect(uri, {
-      serverSelectionTimeoutMS: 5000,
-    });
-
-    console.log(`✅ MongoDB connecté : ${conn.connection.host}`);
+    await mongoClient.connect();
+    db = mongoClient.db();
+    console.log('✅ MongoDB connecté');
   } catch (error) {
     console.error('❌ Erreur de connexion à MongoDB :', error);
     process.exit(1);
   }
 };
 
-export default connectDB;
+export const getDB = (): Db => {
+  if (!db) {
+    throw new Error('❌ Base de données non connectée.');
+  }
+  return db;
+};
